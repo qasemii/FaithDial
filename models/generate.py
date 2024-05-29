@@ -181,7 +181,7 @@ def main():
     special_vocab = SpecialVocab(tokenizer, args.ctrl, initialized=True)
 
     # Load the LoRA configuration
-    lora_config_path = "/content/FaithDial/models/best_model/adapter_config.json"
+    lora_config_path = "/content/FaithDial/models/best_model/"
     peft_config = PeftConfig.from_pretrained(lora_config_path)
 
     # Integrate LoRA with the base model

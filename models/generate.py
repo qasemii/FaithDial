@@ -19,6 +19,9 @@ from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, AutoMo
 sys.path.insert(0, Path(__file__).parent.parent.absolute().as_posix())
 from models.dataset import DialogueDataModule, SpecialVocab
 
+from peft import PeftModel, PeftConfig
+
+
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
@@ -176,6 +179,13 @@ def main():
         model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path, config=config)
 
     special_vocab = SpecialVocab(tokenizer, args.ctrl, initialized=True)
+
+    # Load the LoRA configuration
+    lora_config_path = "/content/FaithDial/models/best_model/config.json"
+    peft_config = PeftConfig.from_pretrained(lora_config_path)
+
+    # Integrate LoRA with the base model
+    model = PeftModel.from_pretrained(model, peft_config)
 
     model.to(args.device)
 

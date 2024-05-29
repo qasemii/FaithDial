@@ -185,7 +185,7 @@ def main():
     peft_config = PeftConfig.from_pretrained(lora_config_path)
 
     # Integrate LoRA with the base model
-    model = PeftModel.from_pretrained(model, peft_config)
+    model = PeftModel.from_pretrained(model, "/content/FaithDial/models/best_model/adapter_config.json")
 
     model.to(args.device)
 

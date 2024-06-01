@@ -142,16 +142,16 @@ class BaseTransformer(pl.LightningModule):
         else:
             self.model = model
 
-        # peft_config = LoraConfig(
-        #     inference_mode=False,
-        #     r=8,
-        #     lora_alpha=32,
-        #     lora_dropout=0.1
-        # )
-        # # Adding LoRA adapter to the model
-        # self.model = get_peft_model(self.model, peft_config)
-        # print('='*50, "\n", "Number of trainable param with LoRA:")
-        # self.model.print_trainable_parameters()
+        peft_config = LoraConfig(
+            inference_mode=False,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1
+        )
+        # Adding LoRA adapter to the model
+        self.model = get_peft_model(self.model, peft_config)
+        print('='*50, "\n", "Number of trainable param with LoRA:")
+        self.model.print_trainable_parameters()
 
     def load_hf_checkpoint(self, *args, **kwargs):
         self.model = self.model_type.from_pretrained(*args, **kwargs)

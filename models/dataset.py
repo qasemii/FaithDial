@@ -632,14 +632,14 @@ class DialogueDataModule(pl.LightningDataModule):
         special_vocab: SpecialVocab,
         args,
         is_encoder_decoder: bool,
-        dataset_name_or_path: str = "McGill-NLP/FaithDial",
+        dataset_name_or_path: str = None,
     ):
         super().__init__()
         self.special_vocab = special_vocab
         self.tokenizer = special_vocab.tokenizer
         self.args = args
         self.is_encoder_decoder = is_encoder_decoder
-        self.dataset_name_or_path = dataset_name_or_path
+        self.dataset_name_or_path = "McGill-NLP/FaithDial" if args.dataset_name_or_path is None else args.dataset_name_or_path
         self.datasets = None
 
     def setup(self, stage: Optional[str] = None):

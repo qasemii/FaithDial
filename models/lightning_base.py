@@ -450,6 +450,14 @@ def add_generic_args(parser):
     parser.add_argument("--do_eval", action="store_true", help="Whether to run evaluation on the dev set.")
     parser.add_argument("--do_test", action="store_true", help="Whether to run evaluation on the test set.")
     parser.add_argument("--seed", type=int, default=42, help="random seed for initialization.")
+
+    parser.add_argument(
+        "--dataset_name_or_path",
+        default=None,
+        type=str,
+        help="Path to dataset",
+    )
+
     parser.add_argument(
         "--deterministic",
         action="store_true",

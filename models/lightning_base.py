@@ -89,12 +89,12 @@ class LiteProgressBar(pl.callbacks.progress.TQDMProgressBar):
 class BaseTransformer(pl.LightningModule):
     def __init__(
         self,
-        hparams: argparse.Namespace,
-        mode="base",
-        config=None,
-        tokenizer=None,
-        model=None,
-        **config_kwargs,
+        # hparams: argparse.Namespace,
+        # mode="base",
+        # config=None,
+        # tokenizer=None,
+        # model=None,
+        # **config_kwargs,
     ):
         """Initialize a model, tokenizer and config."""
         super().__init__()

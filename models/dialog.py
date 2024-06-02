@@ -5,14 +5,20 @@ import sys
 import os
 import shutil
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, Union, Optional
 
 import pytorch_lightning as pl
-import torch
-import torch.nn.functional as F
-from loss_dropper import LossDropper
+from pytorch_lightning.core.saving import save_hparams_to_yaml
+from pytorch_lightning.utilities.enums import DistributedType
+from pytorch_lightning.utilities import rank_zero_info
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.utilities.distributed import rank_zero_info
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
+from loss_dropper import LossDropper
 from transformers import (
     AdamW,
     AutoConfig,
@@ -90,7 +96,16 @@ arg_to_scheduler_metavar = "{" + ", ".join(arg_to_scheduler_choices) + "}"
 
 
 class DialogueTransformer(BaseTransformer):
-    def __init__(self, hparams: argparse.Namespace):
+    def __init__(
+        self,
+        hparams: argparse.Namespace,
+        mode="base",
+        config=None,
+        tokenizer=None,
+        model=None,
+        **config_kwargs,):
+
+        self.save_hyperparameters(hparams)
 
         self.output_dir = Path(self.hparams.output_dir)
         if self.hparams.do_train:

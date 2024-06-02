@@ -105,6 +105,8 @@ class DialogueTransformer(BaseTransformer):
         model=None,
         **config_kwargs,):
 
+        super().__init__()
+
         self.save_hyperparameters(hparams)
 
         self.output_dir = Path(self.hparams.output_dir)
@@ -169,7 +171,6 @@ class DialogueTransformer(BaseTransformer):
         print('=' * 50, "\n", "Number of trainable param with LoRA:")
         self.model.print_trainable_parameters()
 
-        super().__init__(hparams, mode, tokenizer=tokenizer, return_dict=True)
         self.special_vocab = SpecialVocab(self.tokenizer, self.hparams.ctrl)
         self.special_vocab.add_special_tokens(self.model)
 

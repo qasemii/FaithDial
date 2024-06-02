@@ -185,6 +185,13 @@ def main():
         "To use all of them, simply pass `--control_tokens all` and for none, pass `--control_tokens none`.",
     )
 
+    parser.add_argument(
+        "--dataset_name_or_path",
+        default=None,
+        type=str,
+        help="Path to dataset",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -248,7 +255,7 @@ def main():
         )
 
     # Adding LoRA adapter to the model
-    self.model = get_peft_model(model, peft_config)
+    model = get_peft_model(model, peft_config)
 
     model.to(args.device)
 

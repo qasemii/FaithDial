@@ -105,18 +105,11 @@ class BaseTransformer(pl.LightningModule):
             save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
         cache_dir = self.hparams.cache_dir
         if config is None:
-            try:
-                self.config = AutoConfig.from_pretrained(
-                    self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
-                    cache_dir=cache_dir,
-                    **config_kwargs,
-                )
-            except:
-                self.config = AutoConfig.from_pretrained(
-                    't5-base',
-                    cache_dir=cache_dir,
-                    **config_kwargs,
-                )
+            self.config = AutoConfig.from_pretrained(
+                self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
+                cache_dir=cache_dir,
+                **config_kwargs,
+            )
         else:
             self.config: PretrainedConfig = config
 

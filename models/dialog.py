@@ -35,11 +35,19 @@ DATASET_NAME = "McGill-NLP/FaithDial"
 class DialogueTransformer(BaseTransformer):
     def __init__(self, hparams: argparse.Namespace):
         """Initialize a model, tokenizer and config."""
-        config = AutoConfig.from_pretrained(
-            hparams.config_name if hparams.config_name else hparams.model_name_or_path,
-            cache_dir=hparams.cache_dir,
-            return_dict=True,
-        )
+
+        try:
+            self.config = AutoConfig.from_pretrained(
+                self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
+                cache_dir=cache_dir,
+                **config_kwargs,
+            )
+        except:
+            self.config = AutoConfig.from_pretrained(
+                't5-base',
+                cache_dir=cache_dir,
+                **config_kwargs,
+            )
 
         mode = "summarization" if config.is_encoder_decoder else "language-modeling"
 

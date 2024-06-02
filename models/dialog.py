@@ -5,7 +5,7 @@ import sys
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Dict, Union, Optional
+from typing import Any, List, Dict, Union, Optional
 
 import pytorch_lightning as pl
 from pytorch_lightning.core.saving import save_hparams_to_yaml

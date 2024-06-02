@@ -13,7 +13,29 @@ import torch.nn.functional as F
 from loss_dropper import LossDropper
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.utilities.distributed import rank_zero_info
-from transformers import AutoConfig, AutoTokenizer
+from transformers import (
+    AdamW,
+    AutoConfig,
+    AutoModel,
+    AutoModelForPreTraining,
+    AutoModelForQuestionAnswering,
+    AutoModelForSeq2SeqLM,
+    AutoModelForSequenceClassification,
+    AutoModelForTokenClassification,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    PretrainedConfig,
+    PreTrainedTokenizer,
+    PreTrainedTokenizerFast,
+)
+from transformers.optimization import (
+    Adafactor,
+    get_cosine_schedule_with_warmup,
+    get_cosine_with_hard_restarts_schedule_with_warmup,
+    get_constant_schedule_with_warmup,
+    get_linear_schedule_with_warmup,
+    get_polynomial_decay_schedule_with_warmup,
+)
 
 sys.path.insert(0, Path(__file__).parent.parent.absolute().as_posix())
 from models.dataset import DialogueDataModule, SpecialVocab

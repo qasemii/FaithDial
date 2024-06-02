@@ -652,6 +652,11 @@ class DialogueDataModule(pl.LightningDataModule):
         else:
             dataset = datasets.load_dataset(dataset_name_or_path, split=split)
 
+            dataset = dataset.filter(lambda example: "Hallucination" in example["BEGIN"])
+
+            dataset = dataset.rename_column("response", "faithdial_response")
+            dataset = dataset.rename_column("original_response", "response")
+
         return ConversationalDataset(
             self.special_vocab,
             dataset,

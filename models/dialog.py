@@ -149,12 +149,27 @@ class DialogueTransformer(BaseTransformer):
         )
 
         self.model_type = MODEL_MODES[mode]
-        self.model = self.model_type.from_pretrained(
-            self.hparams.model_name_or_path,
-            from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
-            config=self.config,
-            cache_dir=cache_dir,
-        )
+        # self.model = self.model_type.from_pretrained(
+        #     self.hparams.model_name_or_path,
+        #     from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
+        #     config=self.config,
+        #     cache_dir=cache_dir,
+        # )
+
+        try:
+            self.model = self.model_type.from_pretrained(
+                self.hparams.model_name_or_path,
+                from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
+                config=self.config,
+                cache_dir=cache_dir,
+            )
+        except:
+            self.model = self.model_type.from_pretrained(
+                't5-base',
+                from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
+                config=self.config,
+                cache_dir=cache_dir,
+            )
 
         try:
             self.peft_config = LoraConfig.from_pretrained(self.hparams.model_name_or_path)

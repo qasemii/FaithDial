@@ -656,6 +656,7 @@ class DialogueDataModule(pl.LightningDataModule):
 
             dataset = dataset.rename_column("response", "faithdial_response")
             dataset = dataset.rename_column("original_response", "response")
+            dataset = dataset.rename_column("faithdial_response", "original_response")
 
         return ConversationalDataset(
             self.special_vocab,

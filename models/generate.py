@@ -14,8 +14,21 @@ import torch
 import yaml
 from torch.nn.parallel import DataParallel
 from tqdm import tqdm
-from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, AutoModelForSeq2SeqLM
-
+from transformers import (
+    AdamW,
+    AutoConfig,
+    AutoModel,
+    AutoModelForPreTraining,
+    AutoModelForQuestionAnswering,
+    AutoModelForSeq2SeqLM,
+    AutoModelForSequenceClassification,
+    AutoModelForTokenClassification,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    PretrainedConfig,
+    PreTrainedTokenizer,
+    PreTrainedTokenizerFast,
+)
 sys.path.insert(0, Path(__file__).parent.parent.absolute().as_posix())
 from models.dataset import DialogueDataModule, SpecialVocab
 

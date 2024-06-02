@@ -98,12 +98,12 @@ class BaseTransformer(pl.LightningModule):
     ):
         """Initialize a model, tokenizer and config."""
         super().__init__()
-        self.save_hyperparameters(hparams)
-
-        self.output_dir = Path(self.hparams.output_dir)
-        if self.hparams.do_train:
-            save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
-        cache_dir = self.hparams.cache_dir
+        # self.save_hyperparameters(hparams)
+        #
+        # self.output_dir = Path(self.hparams.output_dir)
+        # if self.hparams.do_train:
+        #     save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
+        # cache_dir = self.hparams.cache_dir
         # if config is None:
         #     self.config = AutoConfig.from_pretrained(
         #         self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
@@ -113,16 +113,16 @@ class BaseTransformer(pl.LightningModule):
         # else:
         #     self.config: PretrainedConfig = config
 
-        extra_model_params = (
-            "encoder_layerdrop",
-            "decoder_layerdrop",
-            "dropout",
-            "dropout_rate",
-            "attention_dropout",
-        )
-        for p in extra_model_params:
-            if getattr(self.hparams, p, None) and hasattr(self.config, p):
-                setattr(self.config, p, getattr(self.hparams, p))
+        # extra_model_params = (
+        #     "encoder_layerdrop",
+        #     "decoder_layerdrop",
+        #     "dropout",
+        #     "dropout_rate",
+        #     "attention_dropout",
+        # )
+        # for p in extra_model_params:
+        #     if getattr(self.hparams, p, None) and hasattr(self.config, p):
+        #         setattr(self.config, p, getattr(self.hparams, p))
 
         # if tokenizer is None:
         #     self.tokenizer = AutoTokenizer.from_pretrained(
@@ -152,7 +152,7 @@ class BaseTransformer(pl.LightningModule):
         #         lora_alpha=32,
         #         lora_dropout=0.1
         #     )
-        #
+
         # # Adding LoRA adapter to the model
         # self.model = get_peft_model(self.model, peft_config)
         # print('='*50, "\n", "Number of trainable param with LoRA:")

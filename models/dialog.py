@@ -76,27 +76,58 @@ MODEL_MODES = {
     "translation": AutoModelForSeq2SeqLM,
 }
 
+
+# update this and the import above to support new schedulers from transformers.optimization
+arg_to_scheduler = {
+    "linear": get_linear_schedule_with_warmup,
+    "cosine": get_cosine_schedule_with_warmup,
+    "cosine_w_restarts": get_cosine_with_hard_restarts_schedule_with_warmup,
+    "polynomial": get_polynomial_decay_schedule_with_warmup,
+    "constant": get_constant_schedule_with_warmup,  # not supported for now
+}
+arg_to_scheduler_choices = sorted(arg_to_scheduler.keys())
+arg_to_scheduler_metavar = "{" + ", ".join(arg_to_scheduler_choices) + "}"
+
+
 class DialogueTransformer(BaseTransformer):
     def __init__(self, hparams: argparse.Namespace):
+
+        self.output_dir = Path(self.hparams.output_dir)
+        if self.hparams.do_train:
+            save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
+        cache_dir = self.hparams.cache_dir
+
         """Initialize a model, tokenizer and config."""
         try:
             self.config = AutoConfig.from_pretrained(
                 self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
-                cache_dir=self.hparams.cache_dir,
+                cache_dir=cache_dir,
                 return_dict=True,
             )
         except:
             self.config = AutoConfig.from_pretrained(
                 't5-base',
-                cache_dir=self.hparams.cache_dir,
+                cache_dir=cache_dir,
                 return_dict=True,
             )
 
-        mode = "summarization" if config.is_encoder_decoder else "language-modeling"
+        extra_model_params = (
+            "encoder_layerdrop",
+            "decoder_layerdrop",
+            "dropout",
+            "dropout_rate",
+            "attention_dropout",
+        )
+        for p in extra_model_params:
+            if getattr(self.hparams, p, None) and hasattr(self.config, p):
+                setattr(self.config, p, getattr(self.hparams, p))
+
+
+        mode = "summarization" if self.config.is_encoder_decoder else "language-modeling"
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.hparams.tokenizer_name if self.hparams.tokenizer_name else self.hparams.model_name_or_path,
-            cache_dir=hparams.cache_dir,
+            cache_dir=cache_dir,
             extra_ids=0,
         )
 

@@ -19,7 +19,16 @@ from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, AutoMo
 sys.path.insert(0, Path(__file__).parent.parent.absolute().as_posix())
 from models.dataset import DialogueDataModule, SpecialVocab
 
-from peft import PeftModel, PeftConfig
+from peft import (
+    get_peft_config,
+    get_peft_model,
+    get_peft_model_state_dict,
+    set_peft_model_state_dict,
+    LoraConfig,
+    PeftType,
+    PrefixTuningConfig,
+    PromptEncoderConfig,
+)
 
 
 logging.basicConfig(
@@ -32,6 +41,16 @@ logger = logging.getLogger("generate")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 MAX_LENGTH = int(1000)  # Hardcoded max length to avoid infinite loop
 
+MODEL_MODES = {
+    "base": AutoModel,
+    "sequence-classification": AutoModelForSequenceClassification,
+    "question-answering": AutoModelForQuestionAnswering,
+    "pretraining": AutoModelForPreTraining,
+    "token-classification": AutoModelForTokenClassification,
+    "language-modeling": AutoModelForCausalLM,
+    "summarization": AutoModelForSeq2SeqLM,
+    "translation": AutoModelForSeq2SeqLM,
+}
 
 def set_default_args(args):
     if not args.control_tokens:
@@ -160,10 +179,23 @@ def main():
     set_default_args(args)
     logger.info(f"Arguments: {pformat(args)}")
 
-    config = AutoConfig.from_pretrained(
-        args.model_name_or_path,
-        return_dict=True,
-    )
+    # config = AutoConfig.from_pretrained(
+    #     args.model_name_or_path,
+    #     return_dict=True,
+    # )
+
+    """Initialize a model, tokenizer and config."""
+    try:
+        config = AutoConfig.from_pretrained(
+            args.model_name_or_path,
+            return_dict=True,
+        )
+    except:
+        config = AutoConfig.from_pretrained(
+            't5-base',
+            return_dict=True,
+        )
+
     try:
         tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, extra_ids=0)
     except ValueError:
@@ -173,19 +205,37 @@ def main():
         )
         tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
 
-    if config.is_encoder_decoder:
-        model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path, config=config)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path, config=config)
+    mode = "summarization" if config.is_encoder_decoder else "language-modeling"
+    model_type = MODEL_MODES[mode]
+
+    try:
+        model = model_type.from_pretrained(
+            args.model_name_or_path,
+            from_tf=bool(".ckpt" in args.model_name_or_path),
+            config=config,
+        )
+    except:
+        model = model_type.from_pretrained(
+            't5-base',
+            from_tf=bool(".ckpt" in args.model_name_or_path),
+            config=config,
+        )
 
     special_vocab = SpecialVocab(tokenizer, args.ctrl, initialized=True)
 
     # Load the LoRA configuration
-    lora_config_path = "/content/FaithDial/models/best_model/"
-    peft_config = PeftConfig.from_pretrained(lora_config_path)
+    try:
+        peft_config = LoraConfig.from_pretrained(args.model_name_or_path)
+    except:
+        peft_config = LoraConfig(
+            inference_mode=False,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1
+        )
 
-    # Integrate LoRA with the base model
-    model = PeftModel.from_pretrained(model, "/content/FaithDial/models/best_model/adapter_config.json")
+    # Adding LoRA adapter to the model
+    self.model = get_peft_model(model, peft_config)
 
     model.to(args.device)
 

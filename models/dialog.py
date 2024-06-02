@@ -36,13 +36,13 @@ class DialogueTransformer(BaseTransformer):
     def __init__(self, hparams: argparse.Namespace):
         """Initialize a model, tokenizer and config."""
         try:
-            self.config = AutoConfig.from_pretrained(
+            config = AutoConfig.from_pretrained(
                 self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
                 cache_dir=hparams.cache_dir,
                 return_dict=True,
             )
         except:
-            self.config = AutoConfig.from_pretrained(
+            config = AutoConfig.from_pretrained(
                 't5-base',
                 cache_dir=hparams.cache_dir,
                 return_dict=True,

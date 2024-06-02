@@ -21,6 +21,18 @@ from models.lightning_base import generic_train, add_generic_args, BaseTransform
 from models.metrics import LossDropAccumulator
 from models.modeling_nce import InfoNCE
 
+
+from peft import (
+    get_peft_config,
+    get_peft_model,
+    get_peft_model_state_dict,
+    set_peft_model_state_dict,
+    LoraConfig,
+    PeftType,
+    PrefixTuningConfig,
+    PromptEncoderConfig,
+)
+
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
@@ -31,30 +43,63 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 DATASET_NAME = "McGill-NLP/FaithDial"
 
+MODEL_MODES = {
+    "base": AutoModel,
+    "sequence-classification": AutoModelForSequenceClassification,
+    "question-answering": AutoModelForQuestionAnswering,
+    "pretraining": AutoModelForPreTraining,
+    "token-classification": AutoModelForTokenClassification,
+    "language-modeling": AutoModelForCausalLM,
+    "summarization": AutoModelForSeq2SeqLM,
+    "translation": AutoModelForSeq2SeqLM,
+}
 
 class DialogueTransformer(BaseTransformer):
     def __init__(self, hparams: argparse.Namespace):
         """Initialize a model, tokenizer and config."""
         try:
-            config = AutoConfig.from_pretrained(
+            self.config = AutoConfig.from_pretrained(
                 self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
-                cache_dir=hparams.cache_dir,
+                cache_dir=self.hparams.cache_dir,
                 return_dict=True,
             )
         except:
-            config = AutoConfig.from_pretrained(
+            self.config = AutoConfig.from_pretrained(
                 't5-base',
-                cache_dir=hparams.cache_dir,
+                cache_dir=self.hparams.cache_dir,
                 return_dict=True,
             )
 
         mode = "summarization" if config.is_encoder_decoder else "language-modeling"
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            hparams.tokenizer_name if hparams.tokenizer_name else hparams.model_name_or_path,
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.hparams.tokenizer_name if self.hparams.tokenizer_name else self.hparams.model_name_or_path,
             cache_dir=hparams.cache_dir,
             extra_ids=0,
         )
+
+        self.model_type = MODEL_MODES[mode]
+        self.model = self.model_type.from_pretrained(
+            self.hparams.model_name_or_path,
+            from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
+            config=self.config,
+            cache_dir=cache_dir,
+        )
+
+        try:
+            self.peft_config = LoraConfig.from_pretrained(self.hparams.model_name_or_path)
+        except:
+            self.peft_config = LoraConfig(
+                inference_mode=False,
+                r=8,
+                lora_alpha=32,
+                lora_dropout=0.1
+            )
+
+        # Adding LoRA adapter to the model
+        self.model = get_peft_model(self.model, self.peft_config)
+        print('=' * 50, "\n", "Number of trainable param with LoRA:")
+        self.model.print_trainable_parameters()
 
         super().__init__(hparams, mode, tokenizer=tokenizer, return_dict=True)
         self.special_vocab = SpecialVocab(self.tokenizer, self.hparams.ctrl)

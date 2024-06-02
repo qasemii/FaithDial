@@ -104,14 +104,14 @@ class BaseTransformer(pl.LightningModule):
         if self.hparams.do_train:
             save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
         cache_dir = self.hparams.cache_dir
-        if config is None:
-            self.config = AutoConfig.from_pretrained(
-                self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
-                cache_dir=cache_dir,
-                **config_kwargs,
-            )
-        else:
-            self.config: PretrainedConfig = config
+        # if config is None:
+        #     self.config = AutoConfig.from_pretrained(
+        #         self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
+        #         cache_dir=cache_dir,
+        #         **config_kwargs,
+        #     )
+        # else:
+        #     self.config: PretrainedConfig = config
 
         extra_model_params = (
             "encoder_layerdrop",
@@ -124,38 +124,39 @@ class BaseTransformer(pl.LightningModule):
             if getattr(self.hparams, p, None) and hasattr(self.config, p):
                 setattr(self.config, p, getattr(self.hparams, p))
 
-        if tokenizer is None:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.hparams.tokenizer_name if self.hparams.tokenizer_name else self.hparams.model_name_or_path,
-                cache_dir=cache_dir,
-            )
-        else:
-            self.tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast] = tokenizer
-        self.model_type = MODEL_MODES[mode]
-        if model is None:
-            self.model = self.model_type.from_pretrained(
-                self.hparams.model_name_or_path,
-                from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
-                config=self.config,
-                cache_dir=cache_dir,
-            )
-        else:
-            self.model = model
+        # if tokenizer is None:
+        #     self.tokenizer = AutoTokenizer.from_pretrained(
+        #         self.hparams.tokenizer_name if self.hparams.tokenizer_name else self.hparams.model_name_or_path,
+        #         cache_dir=cache_dir,
+        #     )
+        # else:
+        #     self.tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast] = tokenizer
 
-        try:
-            peft_config = LoraConfig.from_pretrained(self.hparams.model_name_or_path)
-        except:
-            peft_config = LoraConfig(
-                inference_mode=False,
-                r=8,
-                lora_alpha=32,
-                lora_dropout=0.1
-            )
-
-        # Adding LoRA adapter to the model
-        self.model = get_peft_model(self.model, peft_config)
-        print('='*50, "\n", "Number of trainable param with LoRA:")
-        self.model.print_trainable_parameters()
+        # self.model_type = MODEL_MODES[mode]
+        # if model is None:
+        #     self.model = self.model_type.from_pretrained(
+        #         self.hparams.model_name_or_path,
+        #         from_tf=bool(".ckpt" in self.hparams.model_name_or_path),
+        #         config=self.config,
+        #         cache_dir=cache_dir,
+        #     )
+        # else:
+        #     self.model = model
+        #
+        # try:
+        #     peft_config = LoraConfig.from_pretrained(self.hparams.model_name_or_path)
+        # except:
+        #     peft_config = LoraConfig(
+        #         inference_mode=False,
+        #         r=8,
+        #         lora_alpha=32,
+        #         lora_dropout=0.1
+        #     )
+        #
+        # # Adding LoRA adapter to the model
+        # self.model = get_peft_model(self.model, peft_config)
+        # print('='*50, "\n", "Number of trainable param with LoRA:")
+        # self.model.print_trainable_parameters()
 
     def load_hf_checkpoint(self, *args, **kwargs):
         self.model = self.model_type.from_pretrained(*args, **kwargs)

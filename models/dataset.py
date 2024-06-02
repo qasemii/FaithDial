@@ -652,11 +652,11 @@ class DialogueDataModule(pl.LightningDataModule):
         else:
             dataset = datasets.load_dataset(dataset_name_or_path, split=split)
 
-            dataset = dataset.filter(lambda example: "Hallucination" in example["BEGIN"])
-
-            dataset = dataset.rename_column("response", "faithdial_response")
-            dataset = dataset.rename_column("original_response", "response")
-            dataset = dataset.rename_column("faithdial_response", "original_response")
+            # dataset = dataset.filter(lambda example: "Hallucination" in example["BEGIN"])
+            #
+            # dataset = dataset.rename_column("response", "faithdial_response")
+            # dataset = dataset.rename_column("original_response", "response")
+            # dataset = dataset.rename_column("faithdial_response", "original_response")
 
         return ConversationalDataset(
             self.special_vocab,
@@ -694,7 +694,7 @@ class DialogueDataModule(pl.LightningDataModule):
 
         if self.args.do_generate:
             ds["generate"] = self._build_dataset(
-                self.args.predict_dataset_path or self.dataset_name_or_path, datasets.Split.TEST
+                self.args.predict_dataset_path or self.dataset_name_or_path, datasets.Split.VALIDATION
             )
             logger.info(f"#conversational examples loaded for generation: {len(ds['generate'])}")
 

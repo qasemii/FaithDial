@@ -105,11 +105,18 @@ class BaseTransformer(pl.LightningModule):
             save_hparams_to_yaml(str(self.output_dir / "hparams.yaml"), self.hparams)
         cache_dir = self.hparams.cache_dir
         if config is None:
-            self.config = AutoConfig.from_pretrained(
-                self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
-                cache_dir=cache_dir,
-                **config_kwargs,
-            )
+            try:
+                self.config = AutoConfig.from_pretrained(
+                    self.hparams.config_name if self.hparams.config_name else self.hparams.model_name_or_path,
+                    cache_dir=cache_dir,
+                    **config_kwargs,
+                )
+            except:
+                self.config = AutoConfig.from_pretrained(
+                    't5-base',
+                    cache_dir=cache_dir,
+                    **config_kwargs,
+                )
         else:
             self.config: PretrainedConfig = config
 
@@ -142,12 +149,16 @@ class BaseTransformer(pl.LightningModule):
         else:
             self.model = model
 
-        peft_config = LoraConfig(
-            inference_mode=False,
-            r=8,
-            lora_alpha=32,
-            lora_dropout=0.1
-        )
+        try:
+            peft_config = LoraConfig.from_pretrained(self.hparams.model_name_or_path)
+        except:
+            peft_config = LoraConfig(
+                inference_mode=False,
+                r=8,
+                lora_alpha=32,
+                lora_dropout=0.1
+            )
+
         # Adding LoRA adapter to the model
         self.model = get_peft_model(self.model, peft_config)
         print('='*50, "\n", "Number of trainable param with LoRA:")
